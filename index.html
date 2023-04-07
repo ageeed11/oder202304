@@ -15,7 +15,9 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="list-group">
-                    <a href="#" class="list-group-item list-group-item-action" :class="{'active' : tempSelected.name == item.name }" v-for="(item, key) in product" @click="selectedProduct(item)">
+                    <a href="#" class="list-group-item list-group-item-action"
+                        :class="{'active' : tempSelected.name == item.name }" v-for="(item, key) in product"
+                        @click="selectedProduct(item)">
                         <p>{{ item.name }}</p>
                         <div class="d-flex justify-content-between">
                             <p>{{ item.engName }}</p>
@@ -27,18 +29,27 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
+                        <!-- 沒有選擇飲品種類，遮罩飲品選項 v-if -->
+                        <div v-if="!tempSelected.name"
+                            class="text-white d-flex align-items-center justify-content-center h2 fw-900"
+                            style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-color: rgba(0, 0 , 0, 0.2); z-index: 100;">
+                            先選擇飲品</div>
+
                         <div class="mb-3">
                             <label for="" class="form-label">數量</label>
-                            <input type="number" min="0" max="20" class="form-control" id="" v-model="tempSelected.count">
+                            <input type="number" min="0" max="20" class="form-control" id=""
+                                v-model="tempSelected.count">
                         </div>
 
                         <div class="mb-3">
                             <div>冰塊*</div>
                             <div class="form-check form-check-inline" v-for="(item, key) in iceType">
-                                <input class="form-check-input" type="radio" name="iceType" :value="item" 
-                                
+                                <input class="form-check-input" type="radio" name="iceType" :value="item"
+                                    :disabled="!tempSelected.hasOwnProperty('defaults') || (tempSelected.defaults.ice !== '' && tempSelected.defaults.ice != item)"
+                                    v-model="tempSelected.ice">
+                                <!-- 當有預設值的時候，其他選項反灰不給點 
                                 :disabled="!tempSelected.hasOwnProperty('defaults') || (tempSelected.defaults.ice !== '' && tempSelected.defaults.ice != item)"
-                                v-model="tempSelected.ice">
+                                v-model="tempSelected.ice"-->
                                 <label class="form-check-label" for="">
                                     {{ item }}
                                 </label>
@@ -49,8 +60,8 @@
                             <div>甜度*</div>
                             <div class="form-check form-check-inline" v-for="(item, key) in sugarType">
                                 <input class="form-check-input" type="radio" name="sugarType" id="" :value="item"
-                                :disabled="!tempSelected.hasOwnProperty('defaults') || (tempSelected.defaults.sugar !== '' && tempSelected.defaults.sugar != item)"
-                                v-model="tempSelected.sugar">
+                                    :disabled="!tempSelected.hasOwnProperty('defaults') || (tempSelected.defaults.sugar !== '' && tempSelected.defaults.sugar != item)"
+                                    v-model="tempSelected.sugar">
                                 <label class="form-check-label" for="">
                                     {{ item }}
                                 </label>
@@ -71,18 +82,19 @@
 
                         <div class="mb-3">
                             <label for="">備註</label>
-                            <textarea name="" id="" cols="30" rows="3" class="form-control" v-model="tempSelected.notice"></textarea>
+                            <textarea name="" id="" cols="30" rows="3" class="form-control"
+                                v-model="tempSelected.notice"></textarea>
                         </div>
 
                         <div class="d-flex">
                             <button class="btn btn-outline-success w-100 me-1">取消</button>
-                            <button class="btn btn-success w-100">加入</button>
+                            <button class="btn btn-success w-100" @click="addToOrder(tempSelected)">加入</button>
                         </div>
                     </div>
                 </div>
                 <!-- 購物清單 -->
                 <div class="card mt-3">
-                    <div class="card-body">
+                    <div class="card-body" v-if="orderList.length > 0">
                         <table class="table">
                             <thead>
                                 <tr>
@@ -96,25 +108,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
+                                <tr v-for="(item, key) in orderList">
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.ice }}</td>
+                                    <td>{{ item.sugar }}</td>
+                                    <td>{{ item.toppings.toString() }}</td>
+                                    <td>{{ item.price }}</td>
+                                    <td>{{ item.count }}</td>
+                                    <td>{{ item.total }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <button class="btn btn-info w-100">產生訂單</button>
+                        <button class="btn btn-info w-100" @click="generateOrder()">產生訂單</button>
                     </div>
                 </div>
             </div>
-            <!-- 訂單表格 -->
+            <!-- 產生訂單 -->
             <div class="col-md-12 ">
                 <div class="card mt-3">
-                    <div class="card-body">
+                    <div class="card-body" v-if="checkOrder.time">
                         <table class="table">
                             <thead>
                                 <tr>
@@ -128,22 +140,22 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
-                                    <td>XX</td>
+                                <tr v-for="(item, key) in checkOrder.order">
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.ice }}</td>
+                                    <td>{{ item.sugar }}</td>
+                                    <td>{{ item.toppings.toString() }}</td>
+                                    <td>{{ item.price }}</td>
+                                    <td>{{ item.count }}</td>
+                                    <td>{{ item.total }}</td>
                                 </tr>
                             </tbody>
                         </table>
                         <div>
-                            <p>訂單成立時間: XXXXXXXX</p>
-                            <p>餐點數量: XX</p>
+                            <p>訂單成立時間: {{ checkOrder.time }}</p>
+                            <p>餐點數量: {{ checkOrder.order.length }}</p>
                             <p>付款狀態: 未付款</p>
-                            <p class="text-end">共NT: XXX 元</p>
+                            <p class="text-end">共NT: {{ checkOrder.total }} 元</p>
                         </div>
                     </div>
                 </div>
@@ -153,22 +165,26 @@
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         var App = {
-            data(){
-                return{
+            data() {
+                return {
+                    checkOrder: { //紀錄產生的訂單資訊
+                        time: '',
+                        total: 0,
+                        order: []
+                    },
                     orderList: [], //紀錄還未產生訂單的購物清單
                     tempSelected: [],
-                    iceType: ['正常冰', '少冰' , '微冰', '去冰', '常溫'],
-                    sugarType: ['全糖', '七分' , '半糖', '三分', '無糖'],
-                    toppingsType: ['珍珠', '粉條' , '椰果', '小芋圓', '仙草'],
+                    iceType: ['正常冰', '少冰', '微冰', '去冰', '常溫'],
+                    sugarType: ['全糖', '七分', '半糖', '三分', '無糖'],
+                    toppingsType: ['珍珠', '粉條', '椰果', '小芋圓', '仙草'],
                     product: [
                         {
                             name: '阿薩姆珍珠奶茶',
                             engName: 'Assam milk tea',
                             price: 60,
-                            // 預設值
                             defaults: {
                                 ice: '',
                                 sugar: '',
@@ -179,7 +195,6 @@
                             name: '綠茶',
                             engName: 'Green tea',
                             price: 30,
-                            // 預設值
                             defaults: {
                                 ice: '',
                                 sugar: '',
@@ -190,7 +205,6 @@
                             name: '紅茶',
                             engName: 'Black tea',
                             price: 30,
-                            // 預設值
                             defaults: {
                                 ice: '',
                                 sugar: '',
@@ -201,7 +215,6 @@
                             name: '冬瓜茶',
                             engName: 'Winter melon tea',
                             price: 30,
-                            // 預設值
                             defaults: {
                                 ice: '',
                                 sugar: '',
@@ -212,7 +225,7 @@
                 }
             },
             methods: {
-                selectedProduct(product){
+                selectedProduct(product) {
                     this.tempSelected = {
                         ...product,
                         count: '1',
@@ -227,11 +240,32 @@
                     this.orderList.push(
                         {
                             ...product,
-                            total: (product.price + product.toppings.length*10) * product.count
+                            total: (product.price + product.toppings.length * 10) * product.count
                         }
                     );
-                }
-            }
+                },
+                // 產生訂單
+                generateOrder() {
+                    var time = new Date().toLocaleString();
+                    this.checkOrder.time = time;
+                    this.checkOrder.order = this.orderList;
+                    this.countTotal();
+                    this.reset();
+                },
+                // 計算總價
+                countTotal() {
+                    var total = 0;
+                    this.orderList.forEach((item, key) => {
+                        total = total + item.total;
+                    });
+                    this.checkOrder.total = total;
+                },
+                // 產生訂單後，將購物車清空
+                reset() {
+                    this.tempSelected = {};
+                    this.orderList = []
+                },
+            },
         }
         Vue.createApp(App).mount('#app');
     </script>
